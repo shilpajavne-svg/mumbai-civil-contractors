@@ -1,0 +1,49 @@
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const galleryGrid = document.getElementById('galleryGrid');
+    
+    // Change this URL to your live Render/HuggingFace backend URL later
+    const BACKEND_URL = "http://127.0.0.1:8000"; 
+
+    imageInput.addEventListener('change', async function() {
+        const file = this.files[0];
+        if (file) {
+            // 1. Show on screen instantly for user
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                createGalleryItem(e.target.result);
+            };
+            reader.readAsDataURL(file);
+
+            // 2. Send photo to FastAPI backend server
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/upload-photo/`, {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                if(data.status === "success") {
+                    alert("Photo permanently saved to FastAPI Backend!");
+                }
+            } catch (error) {
+                console.error("Backend offline. Saved locally in browser instead.", error);
+            }
+        }
+    });
+
+    function createGalleryItem(src) {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-lg overflow-hidden shadow border border-amber-200';
+        card.innerHTML = `
+            <img src="${src}" alt="Uploaded Civil Work" class="w-full h-48 object-cover">
+            <div class="p-4 font-semibold text-gray-700 flex justify-between items-center">
+                <span>Recent Project Site</span>
+                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Live Server</span>
+            </div>
+        `;
+        galleryGrid.appendChild(card);
+    }
+</script>
